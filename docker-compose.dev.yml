@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+    db:
+        image: mysql
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            - MYSQL_ROOT_PASSWORD=root@123
+            - MYSQL_DATABASE=mini_drive
+        ports:
+            - 33060:3306
+        volumes:
+            - db:/var/lib/mysql
+
+volumes:
+    db:
