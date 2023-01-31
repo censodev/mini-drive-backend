@@ -1,11 +1,11 @@
 package com.censodev.minidrive.services;
 
 import com.censodev.minidrive.dto.auth.LoginReq;
-import com.censodev.minidrive.dto.auth.LoginRes;
+import com.censodev.minidrive.dto.auth.TokenRes;
 import com.censodev.minidrive.dto.auth.RegisterReq;
 
 public interface AuthService {
-    LoginRes login(LoginReq req);
+    TokenRes login(LoginReq req);
 
-    LoginRes register(RegisterReq req);
+    TokenRes register(RegisterReq req);
 }

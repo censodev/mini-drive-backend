@@ -2,7 +2,7 @@ package com.censodev.minidrive.http.controllers;
 
 import com.censodev.minidrive.dto.Res;
 import com.censodev.minidrive.dto.auth.LoginReq;
-import com.censodev.minidrive.dto.auth.LoginRes;
+import com.censodev.minidrive.dto.auth.TokenRes;
 import com.censodev.minidrive.dto.auth.RegisterReq;
 import com.censodev.minidrive.services.AuthService;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +21,13 @@ public class AuthController {
     }
 
     @PostMapping("login")
-    public ResponseEntity<Res<LoginRes>> login(@RequestBody LoginReq req) {
+    public ResponseEntity<Res<TokenRes>> login(@RequestBody LoginReq req) {
         var data = service.login(req);
         return ResponseEntity.ok(new Res<>(data, "Đăng nhập thành công"));
     }
 
     @PostMapping("register")
-    public ResponseEntity<Res<LoginRes>> registerMember(@RequestBody RegisterReq req) {
+    public ResponseEntity<Res<TokenRes>> registerMember(@RequestBody RegisterReq req) {
         var data = service.register(req);
         return ResponseEntity.ok(new Res<>(data, "Đăng ký thành công"));
     }

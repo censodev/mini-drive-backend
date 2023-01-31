@@ -3,7 +3,7 @@ package com.censodev.minidrive.services;
 import com.censodev.minidrive.data.domains.User;
 import com.censodev.minidrive.data.repositories.UserRepository;
 import com.censodev.minidrive.dto.auth.LoginReq;
-import com.censodev.minidrive.dto.auth.LoginRes;
+import com.censodev.minidrive.dto.auth.TokenRes;
 import com.censodev.minidrive.dto.auth.RegisterReq;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.censodev.jwtprovider.JwtProvider;
@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginRes login(LoginReq req) {
+    public TokenRes login(LoginReq req) {
         var u = userRepository
                 .findByUsername(req.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Tài khoản không tồn tại hoặc đã bị vô hiệu hóa"));
@@ -38,14 +38,14 @@ public class AuthServiceImpl implements AuthService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Mật khẩu không chính xác");
         }
         var token = tokenProvider.generate(u.toBuilder().password(null).build());
-        return LoginRes.builder()
+        return TokenRes.builder()
                 .token(token)
                 .expires(tokenProvider.getDefaultExpireInMs())
                 .build();
     }
 
     @Override
-    public LoginRes register(RegisterReq req) {
+    public TokenRes register(RegisterReq req) {
         if (userRepository.findByUsername(req.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Tài khoản đã có người sử dụng");
         }
@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
         u.setPassword(passwordEncoder.encode(req.getPassword()));
         u = userRepository.save(u);
         var token = tokenProvider.generate(u.toBuilder().password(null).build());
-        return LoginRes.builder()
+        return TokenRes.builder()
                 .token(token)
                 .expires(tokenProvider.getDefaultExpireInMs())
                 .build();
