@@ -1,12 +1,12 @@
 package com.censodev.minidrive.services;
 
-import censodev.lib.auth.utils.jwt.TokenProvider;
 import com.censodev.minidrive.data.domains.User;
 import com.censodev.minidrive.data.repositories.UserRepository;
 import com.censodev.minidrive.dto.auth.LoginReq;
 import com.censodev.minidrive.dto.auth.LoginRes;
 import com.censodev.minidrive.dto.auth.RegisterReq;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.censodev.jwtprovider.JwtProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,12 +16,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenProvider tokenProvider;
+    private final JwtProvider tokenProvider;
     private final ObjectMapper mapper;
 
     public AuthServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
-                           TokenProvider tokenProvider,
+                           JwtProvider tokenProvider,
                            ObjectMapper mapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -37,10 +37,10 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(req.getPassword(), u.getPassword())) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Mật khẩu không chính xác");
         }
-        var token = tokenProvider.generateToken(u.toBuilder().password(null).build());
+        var token = tokenProvider.generate(u.toBuilder().password(null).build());
         return LoginRes.builder()
                 .token(token)
-                .expires(tokenProvider.getExpiration())
+                .expires(tokenProvider.getDefaultExpireInMs())
                 .build();
     }
 
@@ -52,10 +52,10 @@ public class AuthServiceImpl implements AuthService {
         var u = mapper.convertValue(req, User.class);
         u.setPassword(passwordEncoder.encode(req.getPassword()));
         u = userRepository.save(u);
-        var token = tokenProvider.generateToken(u.toBuilder().password(null).build());
+        var token = tokenProvider.generate(u.toBuilder().password(null).build());
         return LoginRes.builder()
                 .token(token)
-                .expires(tokenProvider.getExpiration())
+                .expires(tokenProvider.getDefaultExpireInMs())
                 .build();
     }
 }
