@@ -6,53 +6,63 @@ import com.censodev.minidrive.data.dto.drive.FileRes;
 import com.censodev.minidrive.data.dto.drive.FileUploadReq;
 import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
 import com.censodev.minidrive.data.dto.drive.FolderRes;
-import com.censodev.minidrive.services.DriveService;
 import com.censodev.minidrive.data.enums.ResourceStatusEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.censodev.minidrive.services.DriveService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("api/drive")
+@RequiredArgsConstructor
 public class DriveController {
-    @Autowired
-    private DriveService driveService;
+    private final DriveService driveService;
+    private final MessageSource messageSource;
 
     @GetMapping("")
-    public ResponseEntity<Res<DriveRes>> list(@RequestParam ResourceStatusEnum status) {
-        return ResponseEntity.ok(new Res<>(driveService.listItemsByFolderAndStatus(null, status), null));
+    public Res<DriveRes> list(@RequestParam ResourceStatusEnum status) {
+        return new Res<>(driveService.listItemsByFolderAndStatus(null, status), null);
     }
 
     @GetMapping("{folderId}")
-    public ResponseEntity<Res<DriveRes>> listByFolder(@PathVariable Long folderId,
-                                                      @RequestParam ResourceStatusEnum status) {
-        return ResponseEntity.ok(new Res<>(driveService.listItemsByFolderAndStatus(folderId, status), null));
+    public Res<DriveRes> listByFolder(@PathVariable Long folderId,
+                                      @RequestParam ResourceStatusEnum status) {
+        return new Res<>(driveService.listItemsByFolderAndStatus(folderId, status), null);
     }
 
     @PostMapping("folder")
-    public ResponseEntity<Res<FolderRes>> createFolder(@RequestBody FolderCreateReq req) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new Res<>(driveService.createFolder(req), "Tạo thư mục thành công"));
+    public Res<FolderRes> createFolder(@RequestBody FolderCreateReq req, Locale locale) {
+        return new Res<>(driveService.createFolder(req), messageSource.getMessage("drive.create-folder-success", null, locale));
     }
 
     @DeleteMapping("folder/{id}")
-    public ResponseEntity<Res<String>> deleteFolder(@PathVariable Long id,
-                                                    @RequestParam Boolean soft) {
+    public Res<String> deleteFolder(@PathVariable Long id,
+                                    @RequestParam Boolean soft,
+                                    Locale locale) {
         driveService.deleteFolder(id, soft);
-        return ResponseEntity.ok(new Res<>(null, "Xóa thư mục thành công"));
+        return new Res<>(null, messageSource.getMessage("drive.delete-folder-success", null, locale));
     }
 
     @PostMapping("file/upload")
-    public ResponseEntity<Res<FileRes>> uploadFile(FileUploadReq req) {
+    public Res<FileRes> uploadFile(FileUploadReq req, Locale locale) {
         var file = driveService.uploadFile(req);
-        return ResponseEntity.ok(new Res<>(file, "Tải lên tệp thành công"));
+        return new Res<>(file, messageSource.getMessage("drive.upload-file-success", null, locale));
     }
 
     @GetMapping("file/{id}")
@@ -73,21 +83,23 @@ public class DriveController {
     }
 
     @GetMapping("file/{id}/details")
-    public ResponseEntity<Res<FileRes>> fileDetails(@PathVariable String id) {
-        return ResponseEntity.ok(new Res<>(driveService.detailFile(UUID.fromString(id)), null));
+    public Res<FileRes> fileDetails(@PathVariable String id) {
+        return new Res<>(driveService.detailFile(UUID.fromString(id)), null);
     }
 
     @PutMapping("file/{id}/move/{folderId}")
-    public ResponseEntity<Res<String>> moveFile(@PathVariable String id,
-                                                @PathVariable Long folderId) {
+    public Res<String> moveFile(@PathVariable String id,
+                                @PathVariable Long folderId,
+                                Locale locale) {
         driveService.moveFile(UUID.fromString(id), folderId);
-        return ResponseEntity.ok(new Res<>(null, "Chuyển tệp thành công"));
+        return new Res<>(null, messageSource.getMessage("drive.move-file-success", null, locale));
     }
 
     @DeleteMapping("file/{id}")
-    public ResponseEntity<Res<String>> deleteFile(@PathVariable String id,
-                                                  @RequestParam Boolean soft) {
+    public Res<String> deleteFile(@PathVariable String id,
+                                  @RequestParam Boolean soft,
+                                  Locale locale) {
         driveService.deleteFile(UUID.fromString(id), soft);
-        return ResponseEntity.ok(new Res<>(null, "Xóa tệp thành công"));
+        return new Res<>(null, messageSource.getMessage("drive.delete-file-success", null, locale));
     }
 }
