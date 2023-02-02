@@ -1,4 +1,4 @@
-package com.censodev.minidrive.services;
+package com.censodev.minidrive.services.impl;
 
 import com.censodev.minidrive.data.dto.drive.DriveRes;
 import com.censodev.minidrive.data.dto.drive.FileLoadRes;
@@ -7,6 +7,7 @@ import com.censodev.minidrive.data.dto.drive.FileUploadReq;
 import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
 import com.censodev.minidrive.data.dto.drive.FolderRes;
 import com.censodev.minidrive.data.enums.ResourceStatusEnum;
+import com.censodev.minidrive.services.DriveService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;

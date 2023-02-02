@@ -1,5 +1,6 @@
-package com.censodev.minidrive.services;
+package com.censodev.minidrive.services.impl;
 
+import com.censodev.minidrive.services.AwsS3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
