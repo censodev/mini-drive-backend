@@ -1,7 +1,7 @@
-package com.censodev.minidrive.dto.drive;
+package com.censodev.minidrive.data.dto.drive;
 
-import com.censodev.minidrive.dto.user.UserRes;
-import com.censodev.minidrive.utils.enums.ResourceStatusEnum;
+import com.censodev.minidrive.data.dto.user.UserRes;
+import com.censodev.minidrive.data.enums.ResourceStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

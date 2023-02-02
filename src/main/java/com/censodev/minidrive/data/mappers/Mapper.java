@@ -1,4 +1,4 @@
-package com.censodev.minidrive.utils.mappers;
+package com.censodev.minidrive.data.mappers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

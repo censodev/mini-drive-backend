@@ -1,4 +1,4 @@
-package com.censodev.minidrive.utils.enums;
+package com.censodev.minidrive.data.enums;
 
 public enum ResourceStatusEnum {
     TRASHED,

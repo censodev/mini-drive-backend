@@ -2,7 +2,7 @@ package com.censodev.minidrive.data.repositories;
 
 import com.censodev.minidrive.data.domains.Folder;
 import com.censodev.minidrive.data.domains.User;
-import com.censodev.minidrive.utils.enums.ResourceStatusEnum;
+import com.censodev.minidrive.data.enums.ResourceStatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

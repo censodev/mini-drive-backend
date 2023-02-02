@@ -1,6 +1,6 @@
 package com.censodev.minidrive.utils;
 
-import com.censodev.minidrive.dto.PageReq;
+import com.censodev.minidrive.data.dto.PageReq;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

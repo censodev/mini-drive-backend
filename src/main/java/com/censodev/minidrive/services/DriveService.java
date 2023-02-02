@@ -1,7 +1,12 @@
 package com.censodev.minidrive.services;
 
-import com.censodev.minidrive.dto.drive.*;
-import com.censodev.minidrive.utils.enums.ResourceStatusEnum;
+import com.censodev.minidrive.data.dto.drive.DriveRes;
+import com.censodev.minidrive.data.dto.drive.FileLoadRes;
+import com.censodev.minidrive.data.dto.drive.FileRes;
+import com.censodev.minidrive.data.dto.drive.FileUploadReq;
+import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
+import com.censodev.minidrive.data.dto.drive.FolderRes;
+import com.censodev.minidrive.data.enums.ResourceStatusEnum;
 
 import java.util.UUID;
 

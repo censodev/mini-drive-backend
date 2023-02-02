@@ -1,13 +1,14 @@
 package com.censodev.minidrive.configs;
 
-import com.censodev.minidrive.dto.Res;
+import com.censodev.minidrive.data.dto.Res;
+import com.censodev.minidrive.exceptions.BusinessException;
+import com.censodev.minidrive.exceptions.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class ExceptionConfig {
@@ -21,9 +22,15 @@ public class ExceptionConfig {
                 .body(new Res<>(null, msg));
     }
 
-//    @ExceptionHandler(ResponseStatusException.class)
-//    public ResponseEntity<Res<String>> handleResponseStatusException(ResponseStatusException e) {
-//        return ResponseEntity.status(e.getStatus())
-//                .body(new Res<>(e.getReason(), e.getMessage()));
-//    }
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Res<String>> handleUnauthorizedException(UnauthorizedException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new Res<>(null, e.getMessage()));
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Res<String>> handleBusinessException(BusinessException e) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new Res<>(null, e.getMessage()));
+    }
 }

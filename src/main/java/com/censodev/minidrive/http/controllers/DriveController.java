@@ -1,9 +1,13 @@
 package com.censodev.minidrive.http.controllers;
 
-import com.censodev.minidrive.dto.Res;
-import com.censodev.minidrive.dto.drive.*;
+import com.censodev.minidrive.data.dto.Res;
+import com.censodev.minidrive.data.dto.drive.DriveRes;
+import com.censodev.minidrive.data.dto.drive.FileRes;
+import com.censodev.minidrive.data.dto.drive.FileUploadReq;
+import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
+import com.censodev.minidrive.data.dto.drive.FolderRes;
 import com.censodev.minidrive.services.DriveService;
-import com.censodev.minidrive.utils.enums.ResourceStatusEnum;
+import com.censodev.minidrive.data.enums.ResourceStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
