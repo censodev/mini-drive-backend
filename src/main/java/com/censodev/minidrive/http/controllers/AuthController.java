@@ -1,9 +1,9 @@
 package com.censodev.minidrive.http.controllers;
 
-import com.censodev.minidrive.dto.Res;
-import com.censodev.minidrive.dto.auth.LoginReq;
-import com.censodev.minidrive.dto.auth.TokenRes;
-import com.censodev.minidrive.dto.auth.RegisterReq;
+import com.censodev.minidrive.data.dto.Res;
+import com.censodev.minidrive.data.dto.auth.LoginReq;
+import com.censodev.minidrive.data.dto.auth.TokenRes;
+import com.censodev.minidrive.data.dto.auth.RegisterReq;
 import com.censodev.minidrive.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

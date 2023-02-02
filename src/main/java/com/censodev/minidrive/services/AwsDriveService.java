@@ -5,31 +5,42 @@ import com.censodev.minidrive.data.domains.Folder;
 import com.censodev.minidrive.data.domains.User;
 import com.censodev.minidrive.data.repositories.FileRepository;
 import com.censodev.minidrive.data.repositories.FolderRepository;
-import com.censodev.minidrive.dto.drive.*;
+import com.censodev.minidrive.data.dto.drive.DriveRes;
+import com.censodev.minidrive.data.dto.drive.FileLoadRes;
+import com.censodev.minidrive.data.dto.drive.FileRes;
+import com.censodev.minidrive.data.dto.drive.FileUploadReq;
+import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
+import com.censodev.minidrive.data.dto.drive.FolderRes;
+import com.censodev.minidrive.exceptions.BusinessException;
 import com.censodev.minidrive.utils.SessionUtil;
-import com.censodev.minidrive.utils.enums.ResourceStatusEnum;
-import com.censodev.minidrive.utils.mappers.FileMapper;
-import com.censodev.minidrive.utils.mappers.FolderMapper;
+import com.censodev.minidrive.data.enums.ResourceStatusEnum;
+import com.censodev.minidrive.data.mappers.FileMapper;
+import com.censodev.minidrive.data.mappers.FolderMapper;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@Qualifier("awsDriveService")
 @Slf4j
-public class DriveServiceImpl implements DriveService {
+public class AwsDriveService implements DriveService {
     private final Path root = Paths.get("drive");
 
     private final FileRepository fileRepository;
@@ -39,12 +50,12 @@ public class DriveServiceImpl implements DriveService {
     private final FolderMapper folderMapper;
     private final AwsS3Service s3;
 
-    public DriveServiceImpl(FileRepository fileRepository,
-                            FolderRepository folderRepository,
-                            SessionUtil session,
-                            FileMapper fileMapper,
-                            FolderMapper folderMapper,
-                            AwsS3Service s3) {
+    public AwsDriveService(FileRepository fileRepository,
+                           FolderRepository folderRepository,
+                           SessionUtil session,
+                           FileMapper fileMapper,
+                           FolderMapper folderMapper,
+                           AwsS3Service s3) {
         this.fileRepository = fileRepository;
         this.folderRepository = folderRepository;
         this.session = session;
@@ -89,7 +100,7 @@ public class DriveServiceImpl implements DriveService {
                 .owner(User.builder().id(session.getAuthUser().getId()).build());
         if (req.getParentId() != null) {
             var parent = folderRepository.findById(req.getParentId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục cha"));
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục cha"));
             folderBuilder = folderBuilder.parent(parent);
         }
         var folder = folderRepository.save(folderBuilder.build());
@@ -112,7 +123,7 @@ public class DriveServiceImpl implements DriveService {
                 .mime(URLConnection.guessContentTypeFromName(originName));
         if (req.getFolderId() != null) {
             var folder = folderRepository.findById(req.getFolderId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục cha"));
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục cha"));
             fileBuilder = fileBuilder.folder(folder);
         }
 
@@ -130,7 +141,7 @@ public class DriveServiceImpl implements DriveService {
 //                ioException.printStackTrace();
 //            }
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể tải lên tệp");
+            throw new BusinessException("Không thể tải lên tệp");
         }
     }
 
@@ -138,13 +149,13 @@ public class DriveServiceImpl implements DriveService {
     public FileRes detailFile(UUID id) {
         return fileRepository.findById(id)
                 .map(fileMapper::convert)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException("Không tìm được tệp"));
     }
 
     @Override
     public FileLoadRes loadFile(UUID id) {
         var file = fileRepository.findByIdAndStatus(id, ResourceStatusEnum.ACTIVE)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tệp không tồn tại"));
+                .orElseThrow(() -> new BusinessException("Tệp không tồn tại"));
         try {
             var path = getFilePath(file.getOwner().getId().toString(), file.getAlias());
 //            var resource = new UrlResource(path.toUri());
@@ -155,26 +166,27 @@ public class DriveServiceImpl implements DriveService {
                         .resource(resource)
                         .details(fileMapper.convert(file))
                         .build();
-            throw new RuntimeException("Không thể đọc file!");
+            throw new BusinessException("Không thể đọc file!");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể tải tệp");
+            throw new BusinessException("Không thể tải tệp");
         }
     }
 
     @Override
+    @SneakyThrows
     public String generateFileAlias(String originName) {
         var temp = Normalizer.normalize(originName, Normalizer.Form.NFD);
         var pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
         var normalizedName = pattern.matcher(temp)
                 .replaceAll("")
-                .replaceAll(" ", "_")
-                .replaceAll("Đ", "D")
+                .replace(" ", "_")
+                .replace("Đ", "D")
                 .replace("đ", "")
                 .toLowerCase();
 
         var now = new Date().getTime();
-        var random = String.format("%06d", new Random().nextInt(999999));
+        var random = String.format("%06d", SecureRandom.getInstanceStrong().nextInt(999999));
 
         return String.valueOf(now)
                 .concat("_")
@@ -190,7 +202,7 @@ public class DriveServiceImpl implements DriveService {
         List<File> files;
         if (folderId != null) {
             var parent = folderRepository.findById(folderId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục"));
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục"));
             folders = folderRepository.findByOwnerAndParentAndStatusOrderByIdDesc(me, parent, status);
             files = fileRepository.findByOwnerAndFolderAndStatusOrderByCreatedAtDesc(me, parent, status);
         } else {
@@ -211,9 +223,9 @@ public class DriveServiceImpl implements DriveService {
     public void moveFile(UUID id, Long folderId) {
         var me = session.getAuthUser();
         var folder = folderRepository.findByIdAndOwner(folderId, me)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục"));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục"));
         var file = fileRepository.findByIdAndOwner(id, me)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy tệp"));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy tệp"));
         file.setFolder(folder);
         fileRepository.save(file);
     }
@@ -223,7 +235,7 @@ public class DriveServiceImpl implements DriveService {
     public void deleteFile(UUID id, boolean isSoftDelete) {
         var me = session.getAuthUser();
         var file = fileRepository.findByIdAndOwner(id, me)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy tệp"));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy tệp"));
         if (isSoftDelete) {
             file.setStatus(ResourceStatusEnum.TRASHED);
             file.setTrashedAt(LocalDateTime.now());
@@ -235,7 +247,7 @@ public class DriveServiceImpl implements DriveService {
                 s3.delete(path);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể xóa vĩnh viễn tệp");
+                throw new BusinessException("Không thể xóa vĩnh viễn tệp");
             }
         }
         fileRepository.save(file);
@@ -246,7 +258,7 @@ public class DriveServiceImpl implements DriveService {
     public void deleteFolder(Long id, boolean isSoftDelete) {
         var me = session.getAuthUser();
         var folder = folderRepository.findByIdAndOwner(id, me)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục"));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục"));
         var faf = getSubFoldersAndFilesIncludeRootFolder(folder);
         if (isSoftDelete) {
             var now = LocalDateTime.now();
@@ -270,7 +282,7 @@ public class DriveServiceImpl implements DriveService {
                     s3.delete(paths);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể xóa vĩnh viễn thư mục");
+                    throw new BusinessException("Không thể xóa vĩnh viễn thư mục");
                 }
             }
 //                for (var f : files) {

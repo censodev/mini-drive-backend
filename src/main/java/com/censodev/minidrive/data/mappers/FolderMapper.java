@@ -1,7 +1,7 @@
-package com.censodev.minidrive.utils.mappers;
+package com.censodev.minidrive.data.mappers;
 
 import com.censodev.minidrive.data.domains.Folder;
-import com.censodev.minidrive.dto.drive.FolderRes;
+import com.censodev.minidrive.data.dto.drive.FolderRes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 

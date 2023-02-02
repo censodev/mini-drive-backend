@@ -1,17 +1,15 @@
-package com.censodev.minidrive.dto.drive;
+package com.censodev.minidrive.data.dto.drive;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DriveRes {
-    private List<FolderRes> folders;
-    private List<FileRes> files;
+public class FolderCreateReq {
+    private String name;
+    private Long parentId;
 }

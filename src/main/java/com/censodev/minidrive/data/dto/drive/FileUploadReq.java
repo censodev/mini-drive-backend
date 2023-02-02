@@ -1,4 +1,4 @@
-package com.censodev.minidrive.dto.drive;
+package com.censodev.minidrive.data.dto.drive;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
