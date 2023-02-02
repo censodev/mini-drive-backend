@@ -3,6 +3,7 @@ package com.censodev.minidrive.e2e;
 import com.censodev.minidrive.data.dto.Res;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class BaseE2eTest {
     protected final HttpClient http = HttpClient.newHttpClient();
 
@@ -80,6 +82,7 @@ public abstract class BaseE2eTest {
                     upstream,
                     resBody -> {
                         try {
+                            log.info("Response body: {}", resBody);
                             return getObjectMapper().readValue(resBody, javaType);
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
