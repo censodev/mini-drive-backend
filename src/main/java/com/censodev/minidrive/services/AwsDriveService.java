@@ -3,23 +3,26 @@ package com.censodev.minidrive.services;
 import com.censodev.minidrive.data.domains.File;
 import com.censodev.minidrive.data.domains.Folder;
 import com.censodev.minidrive.data.domains.User;
-import com.censodev.minidrive.data.repositories.FileRepository;
-import com.censodev.minidrive.data.repositories.FolderRepository;
 import com.censodev.minidrive.data.dto.drive.DriveRes;
 import com.censodev.minidrive.data.dto.drive.FileLoadRes;
 import com.censodev.minidrive.data.dto.drive.FileRes;
 import com.censodev.minidrive.data.dto.drive.FileUploadReq;
 import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
 import com.censodev.minidrive.data.dto.drive.FolderRes;
-import com.censodev.minidrive.exceptions.BusinessException;
-import com.censodev.minidrive.utils.SessionUtil;
 import com.censodev.minidrive.data.enums.ResourceStatusEnum;
 import com.censodev.minidrive.data.mappers.FileMapper;
 import com.censodev.minidrive.data.mappers.FolderMapper;
+import com.censodev.minidrive.data.repositories.FileRepository;
+import com.censodev.minidrive.data.repositories.FolderRepository;
+import com.censodev.minidrive.exceptions.BusinessException;
+import com.censodev.minidrive.utils.SessionUtil;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,9 +43,10 @@ import java.util.stream.Collectors;
 @Service
 @Qualifier("awsDriveService")
 @Slf4j
+@RequiredArgsConstructor
 public class AwsDriveService implements DriveService {
     private final Path root = Paths.get("drive");
-
+    private final MessageSource messageSource;
     private final FileRepository fileRepository;
     private final FolderRepository folderRepository;
     private final SessionUtil session;
@@ -50,19 +54,6 @@ public class AwsDriveService implements DriveService {
     private final FolderMapper folderMapper;
     private final AwsS3Service s3;
 
-    public AwsDriveService(FileRepository fileRepository,
-                           FolderRepository folderRepository,
-                           SessionUtil session,
-                           FileMapper fileMapper,
-                           FolderMapper folderMapper,
-                           AwsS3Service s3) {
-        this.fileRepository = fileRepository;
-        this.folderRepository = folderRepository;
-        this.session = session;
-        this.fileMapper = fileMapper;
-        this.folderMapper = folderMapper;
-        this.s3 = s3;
-    }
 
     private Path getFolderPath(String uid) {
         return root.resolve(uid);
@@ -100,7 +91,7 @@ public class AwsDriveService implements DriveService {
                 .owner(User.builder().id(session.getAuthUser().getId()).build());
         if (req.getParentId() != null) {
             var parent = folderRepository.findById(req.getParentId())
-                    .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục cha"));
+                    .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.parent-folder-not-found", null, LocaleContextHolder.getLocale())));
             folderBuilder = folderBuilder.parent(parent);
         }
         var folder = folderRepository.save(folderBuilder.build());
@@ -123,8 +114,8 @@ public class AwsDriveService implements DriveService {
                 .mime(URLConnection.guessContentTypeFromName(originName));
         if (req.getFolderId() != null) {
             var folder = folderRepository.findById(req.getFolderId())
-                    .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục cha"));
-            fileBuilder = fileBuilder.folder(folder);
+                    .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.parent-folder-not-found", null, LocaleContextHolder.getLocale())));
+            fileBuilder.folder(folder);
         }
 
         try {
@@ -141,7 +132,7 @@ public class AwsDriveService implements DriveService {
 //                ioException.printStackTrace();
 //            }
             e.printStackTrace();
-            throw new BusinessException("Không thể tải lên tệp");
+            throw new BusinessException(messageSource.getMessage("drive.upload-file-failed", null, LocaleContextHolder.getLocale()));
         }
     }
 
@@ -149,13 +140,13 @@ public class AwsDriveService implements DriveService {
     public FileRes detailFile(UUID id) {
         return fileRepository.findById(id)
                 .map(fileMapper::convert)
-                .orElseThrow(() -> new BusinessException("Không tìm được tệp"));
+                .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
     }
 
     @Override
     public FileLoadRes loadFile(UUID id) {
         var file = fileRepository.findByIdAndStatus(id, ResourceStatusEnum.ACTIVE)
-                .orElseThrow(() -> new BusinessException("Tệp không tồn tại"));
+                .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
         try {
             var path = getFilePath(file.getOwner().getId().toString(), file.getAlias());
 //            var resource = new UrlResource(path.toUri());
@@ -166,10 +157,10 @@ public class AwsDriveService implements DriveService {
                         .resource(resource)
                         .details(fileMapper.convert(file))
                         .build();
-            throw new BusinessException("Không thể đọc file!");
+            throw new BusinessException(messageSource.getMessage("drive.load-file-failed", null, LocaleContextHolder.getLocale()));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException("Không thể tải tệp");
+            throw new BusinessException(messageSource.getMessage("drive.load-file-failed", null, LocaleContextHolder.getLocale()));
         }
     }
 
@@ -202,7 +193,7 @@ public class AwsDriveService implements DriveService {
         List<File> files;
         if (folderId != null) {
             var parent = folderRepository.findById(folderId)
-                    .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục"));
+                    .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.folder-not-found", null, LocaleContextHolder.getLocale())));
             folders = folderRepository.findByOwnerAndParentAndStatusOrderByIdDesc(me, parent, status);
             files = fileRepository.findByOwnerAndFolderAndStatusOrderByCreatedAtDesc(me, parent, status);
         } else {
@@ -223,9 +214,9 @@ public class AwsDriveService implements DriveService {
     public void moveFile(UUID id, Long folderId) {
         var me = session.getAuthUser();
         var folder = folderRepository.findByIdAndOwner(folderId, me)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục"));
+                .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.folder-not-found", null, LocaleContextHolder.getLocale())));
         var file = fileRepository.findByIdAndOwner(id, me)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy tệp"));
+                .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
         file.setFolder(folder);
         fileRepository.save(file);
     }
@@ -235,7 +226,7 @@ public class AwsDriveService implements DriveService {
     public void deleteFile(UUID id, boolean isSoftDelete) {
         var me = session.getAuthUser();
         var file = fileRepository.findByIdAndOwner(id, me)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy tệp"));
+                .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
         if (isSoftDelete) {
             file.setStatus(ResourceStatusEnum.TRASHED);
             file.setTrashedAt(LocalDateTime.now());
@@ -247,7 +238,7 @@ public class AwsDriveService implements DriveService {
                 s3.delete(path);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new BusinessException("Không thể xóa vĩnh viễn tệp");
+                throw new BusinessException(messageSource.getMessage("drive.delete-file-failed", null, LocaleContextHolder.getLocale()));
             }
         }
         fileRepository.save(file);
@@ -258,7 +249,7 @@ public class AwsDriveService implements DriveService {
     public void deleteFolder(Long id, boolean isSoftDelete) {
         var me = session.getAuthUser();
         var folder = folderRepository.findByIdAndOwner(id, me)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy thư mục"));
+                .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.folder-not-found", null, LocaleContextHolder.getLocale())));
         var faf = getSubFoldersAndFilesIncludeRootFolder(folder);
         if (isSoftDelete) {
             var now = LocalDateTime.now();
@@ -282,7 +273,7 @@ public class AwsDriveService implements DriveService {
                     s3.delete(paths);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new BusinessException("Không thể xóa vĩnh viễn thư mục");
+                    throw new BusinessException(messageSource.getMessage("drive.delete-folder-failed", null, LocaleContextHolder.getLocale()));
                 }
             }
 //                for (var f : files) {
