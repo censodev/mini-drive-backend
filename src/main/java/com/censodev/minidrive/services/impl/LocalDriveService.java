@@ -1,65 +1,68 @@
 package com.censodev.minidrive.services.impl;
 
-import com.censodev.minidrive.data.dto.drive.DriveRes;
-import com.censodev.minidrive.data.dto.drive.FileLoadRes;
-import com.censodev.minidrive.data.dto.drive.FileRes;
-import com.censodev.minidrive.data.dto.drive.FileUploadReq;
-import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
-import com.censodev.minidrive.data.dto.drive.FolderRes;
-import com.censodev.minidrive.data.enums.ResourceStatusEnum;
+import com.censodev.minidrive.data.mappers.FileMapper;
+import com.censodev.minidrive.data.mappers.FolderMapper;
+import com.censodev.minidrive.data.repositories.FileRepository;
+import com.censodev.minidrive.data.repositories.FolderRepository;
 import com.censodev.minidrive.services.DriveService;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Primary
 @Qualifier("localDriveService")
-public class LocalDriveService implements DriveService {
+public class LocalDriveService extends BaseDriveService implements DriveService {
+    public LocalDriveService(FileRepository fileRepository,
+                             FolderRepository folderRepository,
+                             MessageSource messageSource,
+                             FolderMapper folderMapper,
+                             FileMapper fileMapper) {
+        super(fileRepository, folderRepository, messageSource, folderMapper, fileMapper);
+    }
+
+    @SneakyThrows
     @Override
-    public FolderRes createFolder(FolderCreateReq req) {
-        return null;
+    protected void uploadPhysicalFile(InputStream is, Path filePath) {
+        var dirPath = getFolderPath();
+        Files.createDirectories(dirPath);
+        Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    @SneakyThrows
+    @Override
+    protected void handleFailedOnUploadPhysicalFile(Exception e, Path filePath) {
+        Files.deleteIfExists(filePath);
+    }
+
+    @SneakyThrows
+    @Override
+    protected Resource loadFileResource(Path path) {
+        return new UrlResource(path.toUri());
+    }
+
+    @SneakyThrows
+    @Override
+    protected void deletePhysicalFile(Path path) {
+        Files.deleteIfExists(path);
     }
 
     @Override
-    public FileRes uploadFile(FileUploadReq req) {
-        return null;
-    }
-
-    @Override
-    public FileRes detailFile(UUID id) {
-        return null;
-    }
-
-    @Override
-    public FileLoadRes loadFile(UUID id) {
-        return null;
-    }
-
-    @Override
-    public String generateFileAlias(String originName) {
-        return null;
-    }
-
-    @Override
-    public DriveRes listItemsByFolderAndStatus(Long folderId, ResourceStatusEnum status) {
-        return null;
-    }
-
-    @Override
-    public void moveFile(UUID id, Long folderId) {
-
-    }
-
-    @Override
-    public void deleteFile(UUID id, boolean isSoftDelete) {
-
-    }
-
-    @Override
-    public void deleteFolder(Long id, boolean isSoftDelete) {
-
+    protected void deletePhysicalFiles(List<Path> paths) {
+        Optional.ofNullable(paths)
+                .orElseGet(Collections::emptyList)
+                .forEach(this::deletePhysicalFile);
     }
 }

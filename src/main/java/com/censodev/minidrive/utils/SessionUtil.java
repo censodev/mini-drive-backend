@@ -1,23 +1,13 @@
 package com.censodev.minidrive.utils;
 
 import com.censodev.minidrive.data.domains.User;
-import org.springframework.http.HttpStatus;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
-
-@Service
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SessionUtil {
-    public User getAuthUser() {
-        return Optional
-                .ofNullable((User) SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getCredentials())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Phiên đăng nhập đã hết hạn"));
+    public static User getAuthUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getCredentials();
     }
 }

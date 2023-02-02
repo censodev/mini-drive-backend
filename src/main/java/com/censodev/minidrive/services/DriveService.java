@@ -19,8 +19,6 @@ public interface DriveService {
 
     FileLoadRes loadFile(UUID id);
 
-    String generateFileAlias(String originName);
-
     DriveRes listItemsByFolderAndStatus(Long folderId, ResourceStatusEnum status);
 
     void moveFile(UUID id, Long folderId);

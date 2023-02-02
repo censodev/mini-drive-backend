@@ -18,18 +18,18 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "files")
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class File {
+public class File extends Domain {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
@@ -39,10 +39,7 @@ public class File {
     private String alias;
     private Float size;
     private String mime;
-
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime trashedAt;
+    private Instant trashedAt;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
