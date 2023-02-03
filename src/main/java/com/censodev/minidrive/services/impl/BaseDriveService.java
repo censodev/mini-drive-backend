@@ -115,7 +115,7 @@ public abstract class BaseDriveService implements DriveService {
         if (req.getParentId() != null) {
             var parent = folderRepository.findById(req.getParentId())
                     .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.parent-folder-not-found", null, LocaleContextHolder.getLocale())));
-            folderBuilder = folderBuilder.parent(parent);
+            folderBuilder.parent(parent);
         }
         var folder = folderRepository.save(folderBuilder.build());
         return folderMapper.convert(folder);
