@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/drive")
@@ -66,9 +65,9 @@ public class DriveController {
     }
 
     @GetMapping("file/{id}")
-    public ResponseEntity<Resource> loadFile(@PathVariable String id,
+    public ResponseEntity<Resource> loadFile(@PathVariable Long id,
                                              @RequestParam(required = false) Boolean preview) {
-        var file = driveService.loadFile(UUID.fromString(id));
+        var file = driveService.loadFile(id);
         var filename = URLEncoder.encode(file.getDetails().getName(), StandardCharsets.UTF_8);
         var mime = file.getDetails().getMime();
 
@@ -83,23 +82,23 @@ public class DriveController {
     }
 
     @GetMapping("file/{id}/details")
-    public Res<FileRes> fileDetails(@PathVariable String id) {
-        return new Res<>(driveService.detailFile(UUID.fromString(id)), null);
+    public Res<FileRes> fileDetails(@PathVariable Long id) {
+        return new Res<>(driveService.detailFile(id), null);
     }
 
     @PutMapping("file/{id}/move/{folderId}")
-    public Res<String> moveFile(@PathVariable String id,
+    public Res<String> moveFile(@PathVariable Long id,
                                 @PathVariable Long folderId,
                                 Locale locale) {
-        driveService.moveFile(UUID.fromString(id), folderId);
+        driveService.moveFile(id, folderId);
         return new Res<>(null, messageSource.getMessage("drive.move-file-success", null, locale));
     }
 
     @DeleteMapping("file/{id}")
-    public Res<String> deleteFile(@PathVariable String id,
+    public Res<String> deleteFile(@PathVariable Long id,
                                   @RequestParam Boolean soft,
                                   Locale locale) {
-        driveService.deleteFile(UUID.fromString(id), soft);
+        driveService.deleteFile(id, soft);
         return new Res<>(null, messageSource.getMessage("drive.delete-file-success", null, locale));
     }
 }

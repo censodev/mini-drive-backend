@@ -34,7 +34,6 @@ import java.text.Normalizer;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -66,7 +65,7 @@ public abstract class BaseDriveService implements DriveService {
 
     protected FolderAndFile getSubFoldersAndFilesIncludeRootFolder(Folder rootFolder) {
         var files = fileRepository
-                .findByFolder(rootFolder);
+                .findByFolderId(rootFolder.getId());
         var folderAndFile = new FolderAndFile();
         folderAndFile.getFolders().add(rootFolder);
         folderAndFile.getFiles().addAll(files);
@@ -122,7 +121,7 @@ public abstract class BaseDriveService implements DriveService {
     }
 
     @Override
-    public FileRes detailFile(UUID id) {
+    public FileRes detailFile(Long id) {
         return fileRepository.findById(id)
                 .map(fileMapper::convert)
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
@@ -137,10 +136,10 @@ public abstract class BaseDriveService implements DriveService {
             var parent = folderRepository.findById(folderId)
                     .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.folder-not-found", null, LocaleContextHolder.getLocale())));
             folders = folderRepository.findByOwnerAndParentAndStatusOrderByIdDesc(me, parent, status);
-            files = fileRepository.findByOwnerAndFolderAndStatusOrderByCreatedAtDesc(me, parent, status);
+            files = fileRepository.findByOwnerIdAndFolderIdAndStatusOrderByCreatedAtDesc(me.getId(), parent.getId(), status);
         } else {
             folders = folderRepository.findByOwnerAndParentIsNullAndStatusOrderByIdDesc(me, status);
-            files = fileRepository.findByOwnerAndFolderIsNullAndStatusOrderByCreatedAtDesc(me, status);
+            files = fileRepository.findByOwnerIdAndFolderIsNullAndStatusOrderByCreatedAtDesc(me.getId(), status);
         }
         return DriveRes.builder()
                 .folders(folders.stream()
@@ -153,11 +152,11 @@ public abstract class BaseDriveService implements DriveService {
     }
 
     @Override
-    public void moveFile(UUID id, Long folderId) {
+    public void moveFile(Long id, Long folderId) {
         var me = SessionUtil.getAuthUser();
         var folder = folderRepository.findByIdAndOwner(folderId, me)
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.folder-not-found", null, LocaleContextHolder.getLocale())));
-        var file = fileRepository.findByIdAndOwner(id, me)
+        var file = fileRepository.findByIdAndOwnerId(id, me.getId())
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
         file.setFolder(folder);
         fileRepository.save(file);
@@ -195,7 +194,7 @@ public abstract class BaseDriveService implements DriveService {
     }
 
     @Override
-    public FileLoadRes loadFile(UUID id) {
+    public FileLoadRes loadFile(Long id) {
         var file = fileRepository.findByIdAndStatus(id, ResourceStatusEnum.ACTIVE)
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
         try {
@@ -215,9 +214,9 @@ public abstract class BaseDriveService implements DriveService {
 
     @Override
     @Transactional
-    public void deleteFile(UUID id, boolean isSoftDelete) {
+    public void deleteFile(Long id, boolean isSoftDelete) {
         var me = SessionUtil.getAuthUser();
-        var file = fileRepository.findByIdAndOwner(id, me)
+        var file = fileRepository.findByIdAndOwnerId(id, me.getId())
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
         if (isSoftDelete) {
             file.setStatus(ResourceStatusEnum.TRASHED);

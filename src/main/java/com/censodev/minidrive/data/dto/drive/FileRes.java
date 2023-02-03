@@ -8,14 +8,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FileRes {
-    private UUID id;
+    private Long id;
     private String name;
     private String alias;
     private Float size;
