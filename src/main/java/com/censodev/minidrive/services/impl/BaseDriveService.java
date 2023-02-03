@@ -7,7 +7,6 @@ import com.censodev.minidrive.data.dto.drive.DriveRes;
 import com.censodev.minidrive.data.dto.drive.FileLoadRes;
 import com.censodev.minidrive.data.dto.drive.FileRes;
 import com.censodev.minidrive.data.dto.drive.FileUploadReq;
-import com.censodev.minidrive.data.dto.drive.FolderAndFile;
 import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
 import com.censodev.minidrive.data.dto.drive.FolderRes;
 import com.censodev.minidrive.data.enums.ResourceStatusEnum;
@@ -18,6 +17,7 @@ import com.censodev.minidrive.data.repositories.FolderRepository;
 import com.censodev.minidrive.exceptions.BusinessException;
 import com.censodev.minidrive.services.DriveService;
 import com.censodev.minidrive.utils.SessionUtil;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.context.MessageSource;
@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -269,5 +270,16 @@ public abstract class BaseDriveService implements DriveService {
         }
         folderRepository.saveAll(faf.getFolders());
         fileRepository.saveAll(faf.getFiles());
+    }
+
+    @Getter
+    private static class FolderAndFile {
+        private List<Folder> folders = new ArrayList<>();
+        private List<File> files = new ArrayList<>();
+
+        public void push(FolderAndFile folderAndFile) {
+            folders.addAll(folderAndFile.folders);
+            files.addAll(folderAndFile.files);
+        }
     }
 }
