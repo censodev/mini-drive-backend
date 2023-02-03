@@ -8,24 +8,20 @@ import com.censodev.minidrive.data.dto.drive.FolderCreateReq;
 import com.censodev.minidrive.data.dto.drive.FolderRes;
 import com.censodev.minidrive.data.enums.ResourceStatusEnum;
 
-import java.util.UUID;
-
 public interface DriveService {
     FolderRes createFolder(FolderCreateReq req);
 
     FileRes uploadFile(FileUploadReq req);
 
-    FileRes detailFile(UUID id);
+    FileRes detailFile(Long id);
 
-    FileLoadRes loadFile(UUID id);
-
-    String generateFileAlias(String originName);
+    FileLoadRes loadFile(Long id);
 
     DriveRes listItemsByFolderAndStatus(Long folderId, ResourceStatusEnum status);
 
-    void moveFile(UUID id, Long folderId);
+    void moveFile(Long id, Long folderId);
 
-    void deleteFile(UUID id, boolean isSoftDelete);
+    void deleteFile(Long id, boolean isSoftDelete);
 
     void deleteFolder(Long id, boolean isSoftDelete);
 }

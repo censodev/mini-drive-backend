@@ -17,25 +17,22 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "folders")
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Folder {
+public class Folder extends Domain {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private String name;
-
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime trashedAt;
+    private Instant trashedAt;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

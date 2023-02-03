@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .antMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .antMatchers(HttpMethod.GET, "/api/drive/file/{\\w+}").permitAll()
+                        .antMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults())

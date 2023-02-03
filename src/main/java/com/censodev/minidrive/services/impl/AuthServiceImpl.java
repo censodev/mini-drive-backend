@@ -1,4 +1,4 @@
-package com.censodev.minidrive.services;
+package com.censodev.minidrive.services.impl;
 
 import com.censodev.minidrive.data.domains.User;
 import com.censodev.minidrive.data.dto.auth.LoginReq;
@@ -6,6 +6,7 @@ import com.censodev.minidrive.data.dto.auth.RegisterReq;
 import com.censodev.minidrive.data.dto.auth.TokenRes;
 import com.censodev.minidrive.data.repositories.UserRepository;
 import com.censodev.minidrive.exceptions.UnauthorizedException;
+import com.censodev.minidrive.services.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.censodev.jwtprovider.JwtProvider;
 import lombok.RequiredArgsConstructor;
