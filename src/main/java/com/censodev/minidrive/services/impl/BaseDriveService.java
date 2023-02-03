@@ -183,8 +183,8 @@ public abstract class BaseDriveService implements DriveService {
             fileBuilder.folder(folder);
         }
 
-        try {
-            uploadPhysicalFile(multipartFile.getInputStream(), filePath);
+        try (InputStream is = multipartFile.getInputStream()) {
+            uploadPhysicalFile(is, filePath);
             var file = fileRepository.save(fileBuilder.build());
             return fileMapper.convert(file);
         } catch (Exception e) {
