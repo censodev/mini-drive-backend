@@ -29,7 +29,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class Folder extends Domain {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private String name;
     private Instant trashedAt;

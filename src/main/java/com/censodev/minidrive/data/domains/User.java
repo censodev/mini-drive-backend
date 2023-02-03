@@ -27,7 +27,7 @@ import java.util.List;
 @AllArgsConstructor
 public class User implements CanAuth {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private String username;
     private String password;
