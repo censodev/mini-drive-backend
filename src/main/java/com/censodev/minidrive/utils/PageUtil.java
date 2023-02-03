@@ -1,12 +1,15 @@
 package com.censodev.minidrive.utils;
 
 import com.censodev.minidrive.data.dto.PageReq;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.Optional;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PageUtil {
     public static Pageable getPageReq(PageReq pageReq) {
         Integer page = Optional.ofNullable(pageReq.getPage()).orElse(0);

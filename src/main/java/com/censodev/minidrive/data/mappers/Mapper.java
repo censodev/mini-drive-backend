@@ -1,24 +1,23 @@
 package com.censodev.minidrive.data.mappers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class Mapper<E, D> {
-    protected final ObjectMapper mapper;
+    protected final ObjectMapper objectMapper;
     protected final Class<E> entityType;
     protected final Class<D> dtoType;
 
-    public Mapper(ObjectMapper mapper, Class<E> entityType, Class<D> dtoType) {
-        this.mapper = mapper;
+    protected Mapper(ObjectMapper objectMapper, Class<E> entityType, Class<D> dtoType) {
+        this.objectMapper = objectMapper;
         this.entityType = entityType;
         this.dtoType = dtoType;
     }
 
     public E revert(D dto) {
-        return mapper.convertValue(dto, entityType);
+        return objectMapper.convertValue(dto, entityType);
     }
 
     public D convert(E entity) {
-        return mapper.convertValue(entity, dtoType);
+        return objectMapper.convertValue(entity, dtoType);
     }
 }
