@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -18,6 +18,6 @@ public class FolderRes {
     private String name;
     private ResourceStatusEnum status;
     private UserRes owner;
-    private LocalDateTime createdAt;
-    private LocalDateTime trashedAt;
+    private Instant createdAt;
+    private Instant trashedAt;
 }

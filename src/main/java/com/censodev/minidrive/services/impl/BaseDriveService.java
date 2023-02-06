@@ -118,13 +118,13 @@ public abstract class BaseDriveService implements DriveService {
             folderBuilder.parent(parent);
         }
         var folder = folderRepository.save(folderBuilder.build());
-        return folderMapper.convert(folder);
+        return folderMapper.toDto(folder);
     }
 
     @Override
     public FileRes detailFile(Long id) {
         return fileRepository.findById(id)
-                .map(fileMapper::convert)
+                .map(fileMapper::toDto)
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("drive.file-not-found", null, LocaleContextHolder.getLocale())));
     }
 
@@ -144,10 +144,10 @@ public abstract class BaseDriveService implements DriveService {
         }
         return DriveRes.builder()
                 .folders(folders.stream()
-                        .map(folderMapper::convert)
+                        .map(folderMapper::toDto)
                         .collect(Collectors.toList()))
                 .files(files.stream()
-                        .map(fileMapper::convert)
+                        .map(fileMapper::toDto)
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -186,7 +186,7 @@ public abstract class BaseDriveService implements DriveService {
         try (InputStream is = multipartFile.getInputStream()) {
             uploadPhysicalFile(is, filePath);
             var file = fileRepository.save(fileBuilder.build());
-            return fileMapper.convert(file);
+            return fileMapper.toDto(file);
         } catch (Exception e) {
             e.printStackTrace();
             handleFailedOnUploadPhysicalFile(e, filePath);
@@ -204,7 +204,7 @@ public abstract class BaseDriveService implements DriveService {
             if (resource.exists() || resource.isReadable())
                 return FileLoadRes.builder()
                         .resource(resource)
-                        .details(fileMapper.convert(file))
+                        .details(fileMapper.toDto(file))
                         .build();
             throw new BusinessException(messageSource.getMessage("drive.load-file-failed", null, LocaleContextHolder.getLocale()));
         } catch (Exception e) {
@@ -274,8 +274,8 @@ public abstract class BaseDriveService implements DriveService {
 
     @Getter
     private static class FolderAndFile {
-        private List<Folder> folders = new ArrayList<>();
-        private List<File> files = new ArrayList<>();
+        private final List<Folder> folders = new ArrayList<>();
+        private final List<File> files = new ArrayList<>();
 
         public void push(FolderAndFile folderAndFile) {
             folders.addAll(folderAndFile.folders);
