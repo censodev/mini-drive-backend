@@ -2,12 +2,9 @@ package com.censodev.minidrive.data.mappers;
 
 import com.censodev.minidrive.data.domains.User;
 import com.censodev.minidrive.data.dto.user.UserRes;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Service;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 
-@Service
-public class UserMapper extends Mapper<User, UserRes> {
-    public UserMapper(ObjectMapper mapper) {
-        super(mapper, User.class, UserRes.class);
-    }
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface UserMapper extends BaseMapper<User, UserRes> {
 }
